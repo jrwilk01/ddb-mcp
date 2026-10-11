@@ -72,7 +72,7 @@ The `touch` creates the file only if it doesn't exist yet; if Claude Desktop alr
   "mcpServers": {
     "dndbeyond": {
       "command": "npx",
-      "args": ["-y", "@iamjameslennon/ddb-mcp"]
+      "args": ["-y", "github:jrwilk01/ddb-mcp"]
     }
   }
 }
@@ -85,7 +85,7 @@ The `touch` creates the file only if it doesn't exist yet; if Claude Desktop alr
   "mcpServers": {
     "dndbeyond": {
       "command": "npx",
-      "args": ["-y", "@iamjameslennon/ddb-mcp"]
+      "args": ["-y", "github:jrwilk01/ddb-mcp"]
     }
   },
   "preferences": { ... leave whatever was already here untouched ... }
@@ -100,7 +100,7 @@ The `touch` creates the file only if it doesn't exist yet; if Claude Desktop alr
     "Context7": { ... whatever was already here ... },
     "dndbeyond": {
       "command": "npx",
-      "args": ["-y", "@iamjameslennon/ddb-mcp"]
+      "args": ["-y", "github:jrwilk01/ddb-mcp"]
     }
   },
   "preferences": { ... leave this alone ... }

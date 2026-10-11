@@ -2,7 +2,9 @@
 
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that gives Claude direct access to your D&D Beyond account — characters, campaigns, sourcebooks, spells, monsters, rules, encounter planning, treasure generation, and more.
 
-> **What's new** — see the [latest release notes](https://github.com/iamjameslennon/ddb-mcp/releases).
+> **Fork notice** — this is a fork of [iamjameslennon/ddb-mcp](https://github.com/iamjameslennon/ddb-mcp) by James Lennon, who wrote the server this builds on. It isn't published to npm; the instructions below install it straight from GitHub.
+
+> **What's new** — this fork has no tagged releases; see its [commit history](https://github.com/jrwilk01/ddb-mcp/commits/main). For changes up to the fork point (v2.10.2), see upstream's [release notes](https://github.com/iamjameslennon/ddb-mcp/releases).
 
 ---
 
@@ -249,7 +251,7 @@ Add this to your MCP client's config — no separate install step needed.
   "mcpServers": {
     "dndbeyond": {
       "command": "npx",
-      "args": ["-y", "@iamjameslennon/ddb-mcp"]
+      "args": ["-y", "github:jrwilk01/ddb-mcp"]
     }
   }
 }
@@ -272,7 +274,7 @@ To pin a version (recommended for production setups), change the args to `["-y",
 If you'd rather have a persistent binary on `PATH` (offline use, air-gapped networks, faster startup):
 
 ```bash
-npm install -g @iamjameslennon/ddb-mcp
+npm install -g github:jrwilk01/ddb-mcp
 ```
 
 Then use `"command": "ddb-mcp"` (no args) in your client config. The browser is still launched on first `ddb_login` (system Chrome if available, bundled Chromium otherwise) rather than during install.
@@ -319,7 +321,7 @@ All clients below use the same JSON config from the [Installation](#installation
 One-liner — no manual JSON editing:
 
 ```bash
-claude mcp add dndbeyond -- npx -y @iamjameslennon/ddb-mcp
+claude mcp add dndbeyond -- npx -y github:jrwilk01/ddb-mcp
 ```
 
 Or if you installed globally:
