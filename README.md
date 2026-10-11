@@ -263,19 +263,29 @@ Add this to your MCP client's config — no separate install step needed.
 > python3 -m json.tool /path/to/your/config.json > /dev/null && echo "JSON OK"
 > ```
 
-On first launch, `npx` fetches the package itself (small — under 200 kB unpacked of JS). For the browser dependency: on first `ddb_login`, the server tries to launch your **already-installed Google Chrome** first — most macOS and Windows users get zero download. If Chrome isn't present, it falls back to downloading Playwright's bundled Chromium (~140 MB), with progress printed to the server log; subsequent logins reuse the cached browser. Set `DDB_USE_BUNDLED_CHROMIUM=1` to skip the system-Chrome attempt and force the bundled path.
+This fork isn't on npm, so `npx` installs it from GitHub. That needs `git` on your `PATH` (on macOS it comes with the Xcode Command Line Tools, which Homebrew installs; on Windows, install [Git for Windows](https://git-scm.com/download/win)). On first launch `npx` downloads the source, installs its build tools, and compiles it — allow about a minute before the server responds. For the browser dependency: on first `ddb_login`, the server tries to launch your **already-installed Google Chrome** first — most macOS and Windows users get zero download. If Chrome isn't present, it falls back to downloading Playwright's bundled Chromium (~140 MB), with progress printed to the server log; subsequent logins reuse the cached browser. Set `DDB_USE_BUNDLED_CHROMIUM=1` to skip the system-Chrome attempt and force the bundled path.
 
 Configure the path to your client's config file in the [Connecting to your MCP client](#connecting-to-your-mcp-client) section below.
 
-To pin a version (recommended for production setups), change the args to `["-y", "@iamjameslennon/ddb-mcp@2.10.2"]`.
+Unpinned, `github:jrwilk01/ddb-mcp` tracks the fork's `main` branch: `npx` checks GitHub on every launch and rebuilds whenever `main` has moved. To pin a version (recommended for production setups), add a git ref after `#`. The fork has no release tags yet, so pin to a full commit SHA, which you can copy from the [commit history](https://github.com/jrwilk01/ddb-mcp/commits/main):
+
+```json
+"args": ["-y", "github:jrwilk01/ddb-mcp#<40-character-commit-sha>"]
+```
+
+A pinned commit never changes, so `npx` builds it once and reuses the cached build after that. To upgrade, change the SHA.
 
 ### Alternative: install globally
 
-If you'd rather have a persistent binary on `PATH` (offline use, air-gapped networks, faster startup):
+If you'd rather have a persistent binary on `PATH` (offline use, air-gapped networks, faster startup), build a package from GitHub and install that:
 
 ```bash
-npm install -g github:jrwilk01/ddb-mcp
+cd "$(mktemp -d)"
+npm pack github:jrwilk01/ddb-mcp            # builds it and prints the .tgz file name
+npm install -g ./iamjameslennon-ddb-mcp-*.tgz
 ```
+
+Don't run `npm install -g github:jrwilk01/ddb-mcp` directly. With current npm (tested on 11.19) a global install from git fails with `tsc: command not found`, because npm installs the build tools globally instead of next to the source. `npm pack` does the build in a normal, non-global install, so it works. Add `#<commit-sha>` to the `npm pack` spec to pin a commit.
 
 Then use `"command": "ddb-mcp"` (no args) in your client config. The browser is still launched on first `ddb_login` (system Chrome if available, bundled Chromium otherwise) rather than during install.
 
@@ -300,7 +310,7 @@ Then use `"command": "ddb-mcp"` (no args) in your client config. The browser is 
 - **Browser navigation allowlist**: the browser tools are pinned to `dndbeyond.com`. `ddb_navigate` validates the URL up front, a network-layer guard blocks in-page escapes (link clicks, JS redirects, popups) to any other origin, and `ddb_get_page` refuses to return content from any page outside the allowlist.
 - **Untrusted content**: free text authored by D&D Beyond users is wrapped in `<untrusted_dndbeyond_content>` tags — scraped page text (`ddb_navigate`, `ddb_get_page`), book content (`ddb_read_book`), character notes/backstories (`ddb_get_character`, `ddb_get_party`), and homebrew monster stat blocks (`ddb_get_monster`). Embedded delimiter tags in the content are neutralized so it can't break out of the block. Party-member backstories and campaign notes are written by *other people* and may contain prompt-injection attempts — treat everything inside the tags as data, never as instructions. The `confirm_click` / `confirm_fill` gates on `ddb_interact` exist for exactly this reason.
 - **Tool annotations & client permissions**: every tool declares MCP behavior hints (`readOnlyHint`, `destructiveHint`, `openWorldHint`) so your MCP client can scope its permission prompts. The read-only tools (searches, lookups, character/campaign reads) are safe to auto-approve. **Never auto-approve `ddb_interact`**: its `confirm_click`/`confirm_fill` gates are set by the calling model, not by you, so your client's per-call permission prompt is the only human-in-the-loop check standing between a prompt-injected page and a click or form submission on your logged-in D&D Beyond session. `ddb_login` (writes credentials) and `ddb_download_character` (writes/overwrites local files) also warrant per-call approval. `ddb_logout` is also `destructiveHint: true` (it deletes the saved session file), though unlike the others it never talks to D&D Beyond and only ever narrows access.
-- **Recommendation**: pin the version in your MCP client config — `"@iamjameslennon/ddb-mcp@2.10.2"` — rather than letting `npx` auto-update on every launch.
+- **Recommendation**: pin a commit in your MCP client config (`"github:jrwilk01/ddb-mcp#<commit-sha>"`, see [Installation](#installation)). Unpinned, `npx` picks up and runs whatever is on the fork's `main` branch at each launch.
 
 ---
 
@@ -509,9 +519,11 @@ Key things `ddb_get_character` handles correctly:
 
 ## Upgrading
 
-```bash
-npm update -g @iamjameslennon/ddb-mcp
-```
+- **`npx`, unpinned** (`github:jrwilk01/ddb-mcp`): nothing to do. `npx` sees the new commit on `main` at the next launch and rebuilds.
+- **`npx`, pinned** (`github:jrwilk01/ddb-mcp#<commit-sha>`): change the SHA in your client config.
+- **Global install**: repeat the `npm pack` + `npm install -g` steps from [Alternative: install globally](#alternative-install-globally).
+
+> ⚠️ **Don't use `npm update -g` for this fork.** The fork keeps upstream's package name (`@iamjameslennon/ddb-mcp`), so `npm update -g` looks that name up on npm and replaces the fork with **upstream's** published package once upstream's version is newer. (Tested: it swapped a fork install for the npm build.)
 
 Then restart your MCP client and run `/mcp` to reconnect the server.
 
@@ -622,6 +634,8 @@ npm test
 ---
 
 ## Credits
+
+This repository is a fork of James Lennon's [iamjameslennon/ddb-mcp](https://github.com/iamjameslennon/ddb-mcp); the rest of this section is upstream's own credits and describes upstream's changes.
 
 Forked from [ddb-mcp/ddb-mcp](https://github.com/ddb-mcp/ddb-mcp). The monster, reference, and session-workflow tooling was inspired by [dndbeyond-mcp](https://www.npmjs.com/package/dndbeyond-mcp). This fork significantly expands character parsing, adds session-based API fetching, and introduces compendium, reference, encounter, and treasure tools.
 

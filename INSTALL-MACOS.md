@@ -20,6 +20,8 @@ brew --version
 ```
 You should see something like `Homebrew 4.x.x`.
 
+The Homebrew installer also installs Apple's Command Line Tools, which include `git`. ddb-mcp is installed straight from GitHub, so it needs `git`. Check it with `git --version`.
+
 ## 2. Install Node.js
 
 In the same Terminal:
@@ -121,7 +123,7 @@ If you see `JSON OK`, continue. If you get an error instead, it names the line a
 
 ## 5. Restart Claude Desktop
 
-Open the **Claude** app from Applications. The first launch loads the MCP server in the background — give it 30 seconds.
+Open the **Claude** app from Applications. The first launch downloads the MCP server from GitHub and builds it in the background, so give it about a minute.
 
 To verify it's connected, send Claude this message:
 
@@ -190,6 +192,9 @@ The Playwright CDN is occasionally flaky. Just send "log me into D&D Beyond" aga
 npx playwright install chromium
 ```
 Then try `ddb_login` again.
+
+**The log says `spawn git` / `An unknown git error occurred`**
+`git` isn't installed. Run `xcode-select --install` in Terminal, finish the installer, then fully quit and reopen Claude.
 
 **Claude can't find `npx` (mentioned in the log)**
 You skipped step 2, or you opened Claude before installing Node. Quit Claude (`Cmd` + `Q`), reopen — Node is now on the PATH and Claude will pick it up.

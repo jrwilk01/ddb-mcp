@@ -118,6 +118,8 @@ Owns the single authoritative answer to "which account are we, right now?" and s
 
 ### Release process
 
+> **Fork note:** this section, the LobeHub listing, and `npm-publish.yml` describe upstream's (iamjameslennon/ddb-mcp) release pipeline. This fork (jrwilk01/ddb-mcp) doesn't publish to npm or LobeHub and has no release tags. Its README installs from `github:jrwilk01/ddb-mcp` with git-ref pins, so step 5's `@iamjameslennon/ddb-mcp@X.Y.Z` README rewrite no longer matches anything here.
+
 Releases are automated via `scripts/release.js` (ES module, Node built-ins only):
 
 1. Guards: clean tree, on `main`, and not behind `origin/main` (a failed `git fetch` downgrades to a warning). Each guard warns instead of exiting under `--dry-run`
@@ -161,7 +163,7 @@ Two traps this exists to avoid, both from Glama's inferred build using **pnpm**:
 
 ### Package metadata
 
-- Published as `@iamjameslennon/ddb-mcp` on npm (MIT licence)
+- Upstream publishes this as `@iamjameslennon/ddb-mcp` on npm (MIT licence). This fork keeps that `name` but is **not** on npm. The README installs it with `npx -y github:jrwilk01/ddb-mcp`; npm runs the `prepare` build on git installs, and `git` must be on `PATH`. A global install has to go through `npm pack github:jrwilk01/ddb-mcp` followed by `npm install -g <tgz>`, because `npm install -g github:…` fails on npm 11 with `tsc: command not found`. Because the name is shared, `npm update -g` replaces the fork with upstream's npm package once upstream's version is newer
 - **`@types/node` is pinned to `^22`** to match the `engines: { node: ">=22" }` floor — deliberately not the latest. Types newer than the oldest supported runtime make `tsc` accept APIs that don't exist there, so a green typecheck would no longer prove the package runs on Node 22. Dependabot is configured to ignore its major bumps (`.github/dependabot.yml`). These three move together: the `engines` floor, this pin, and the CI matrix in `ci.yml` (which tests every live Node line). Node 22 is maintenance LTS until 2027-04-30 — bump all three when it goes EOL.
 - `"files"` in `package.json` limits the published tarball to `dist/` and `README.md`
 - `"bin": { "ddb-mcp": "dist/index.js" }` exposes `ddb-mcp` as a CLI on PATH for global installs; the entry has a `#!/usr/bin/env node` shebang preserved through `tsc`
